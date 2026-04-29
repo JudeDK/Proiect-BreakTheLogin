@@ -1,0 +1,9 @@
+@page
+@model ProiectWeb.Pages.V1.LoginModel
+<h2>Login V1 (Vulnerabil)</h2>
+<div asp-validation-summary="All" class="text-danger"></div>
+<form method="post">
+    Email: <input type="text" asp-for="Email" /><br/>
+    Parola: <input type="password" asp-for="Password" /><br/>
+    <button type="submit">Login</button>
+</form>

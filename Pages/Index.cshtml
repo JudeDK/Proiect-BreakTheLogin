@@ -1,0 +1,40 @@
+@page
+@model IndexModel
+@{ ViewData["Title"] = "Home"; }
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success mt-3">
+        @TempData["Message"]
+    </div>
+}
+
+<div class="text-center mt-5">
+    <h1>Proiect Securitate - Analiza Autentificare</h1>
+    
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        <div class="alert alert-info mt-4">
+            <h4>Bun venit in Dashboard!</h4>
+            <p>Acum aveti o sesiune activa (Cookie Auth functioneaza).</p>
+            <p>Puteti testa logica de logout apasand butonul rosu din dreapta sus.</p>
+        </div>
+    }
+
+    <div class="row mt-5">
+        <div class="col-md-6 border-end">
+            <h2 class="text-danger">Varianta V1 (Vulnerabila)</h2>
+            <p>Fara hashing, mesaje de eroare detaliate, token predictibil.</p>
+            <a asp-page="/V1/Register" class="btn btn-outline-danger m-1">Register V1</a>
+            <a asp-page="/V1/Login" class="btn btn-outline-danger m-1">Login V1</a>
+            <a asp-page="/V1/ForgotPassword" class="btn btn-outline-danger m-1">Forgot V1</a>
+        </div>
+        <div class="col-md-6">
+            <h2 class="text-success">Varianta V2 (Securizata)</h2>
+            <p>BCrypt, mesaje generice, token random & expirare, validari.</p>
+            <a asp-page="/V2/Register" class="btn btn-outline-success m-1">Register V2</a>
+            <a asp-page="/V2/Login" class="btn btn-outline-success m-1">Login V2</a>
+            <a asp-page="/V2/ForgotPassword" class="btn btn-outline-success m-1">Forgot V2</a>
+        </div>
+    </div>
+</div>

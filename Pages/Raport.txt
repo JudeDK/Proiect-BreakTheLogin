@@ -1,0 +1,52 @@
+=============================================================================
+RAPORT PROIECT 2 - BREAK THE LOGIN
+Realizat de: Rares
+=============================================================================
+
+4.1 User Enumeration
+- Descrie vulnerabilitatea: Aplicația în varianta V1 (nesecurizată) returna mesaje de eroare diferite în funcție de existența utilizatorului. Dacă introduceam un email care nu era în baza de date, primeam "Eroare: Utilizatorul NU exista!". Dacă introduceam un email valid, dar cu parolă greșită, primeam "Eroare: Parola gresita pentru acest user!". Astfel, am putut deduce ce adrese de email sunt înregistrate în sistem.
+- Dovada:
+[ CAPTURĂ DE ECRAN 1 AICI - DOVADA BURP SUITE SAU POSTMAN ]
+-> CUM SĂ FACI POZA:
+   1. Deschide Postman sau Burp Suite.
+   2. Fă o cerere POST către "https://localhost:<portul_tau>/V1/Login" (sau direct din browser cu F12 Network tab).
+   3. Introdu un email inexistent și o parolă oarecare. Fă o poză în care să se vadă clar răspunsul serverului cu mesajul "Utilizatorul NU exista!".
+   4. Modifică email-ul cu un user deja înregistrat (ex: raresmarian3344@gmail.com) și o parolă greșită.
+   5. Fă a doua poză în care să se vadă răspunsul cu mesajul "Parola gresita pentru acest user!".
+- User valid găsit: raresmarian3344@gmail.com
+
+
+4.2 Brute Force
+- Metoda folosită: Am folosit Burp Suite Intruder (sau Postman Runner) executând un atac de tip "Sniper" folosind o listă scurtă de parole comune (wordlist), testând userul valid descoperit la pasul 4.1.
+- Dovada:
+[ CAPTURĂ DE ECRAN 2 AICI - DOVADA ATACULUI DE BRUTE FORCE ]
+-> CUM SĂ FACI POZA:
+   1. Deschide Burp Suite (tabul Intruder) sau Postman.
+   2. Configurează atacul pentru endpoint-ul "/V1/Login" folosind adresa de email validă descoperită și o listă de parole pentru câmpul Password.
+   3. Fă o captură de ecran la tabelul de rezultate (în Burp Intruder) arătând clar că o anumită parolă a returnat un răspuns diferit (ex: lungime diferită a răspunsului sau status HTTP 302 Redirect) față de celelalte parole greșite, indicând o logare cu succes.
+- Datele de autentificare găsite: Email: raresmarian3344@gmail.com, Parolă: 123456 (sau parola pe care ai pus-o tu în clar pentru versiunea V1).
+
+
+4.3 Securizare (Ce ai modificat tu în cod)
+- Remediere User Enumeration: În varianta V2, am înlocuit mesajele specifice cu un mesaj generic. Indiferent dacă utilizatorul nu există sau dacă parola este greșită, aplicația returnează mereu același text: "Email sau parola incorecta.". Astfel, un atacator nu mai poate deduce dacă o adresă de email este înregistrată sau nu.
+[ CAPTURĂ DE ECRAN 3 AICI - DOVADA FIX USER ENUMERATION ]
+-> CUM SĂ FACI POZA: În Postman/Burp sau browser, fă o cerere de login pe varianta V2 (/V2/Login) cu un user invalid și apoi cu un user valid dar parolă greșită. Fă poză să se vadă că mesajul primit este absolut identic în ambele cazuri.
+
+- Securizare Parolă: Parolele nu mai sunt stocate în clar. În versiunea V2, la înregistrare, parola este trecută printr-o funcție de hashing folosind algoritmul BCrypt (librăria BCrypt.Net). BCrypt generează automat un "salt" unic (inclus în hash) pentru fiecare parolă și folosește un factor de cost (work factor) implicit de 11. Baza de date salvează doar hash-ul rezultat (ex: $2a$11$...).
+[ CAPTURĂ DE ECRAN 4 AICI - DOVADA FIX BAZA DE DATE ]
+-> CUM SĂ FACI POZA: Deschide baza de date SQLite (cu comanda "sqlite3 AppDbContext.db '.mode table' 'SELECT * FROM Users;'" în terminal) și fă o captură de ecran la rezultat. Trebuie să se vadă diferența clară dintre utilizatorul V1 (parolă în clar) și utilizatorul V2 (parolă de tip hash "$2a$11$...").
+
+- Protecție la Brute Force: Am adăugat o limitare a încercărilor de logare eșuate (Account Lockout). În codul din V2, la fiecare logare eșuată, se incrementează coloana "FailedLoginAttempts" din baza de date. Dacă numărul de încercări ajunge la 3, contul este blocat automat (coloana "Locked" devine "true" sau 1), iar utilizatorul primește un mesaj de eroare informând blocarea contului. O logare reușită resetează contorul la 0.
+[ CAPTURĂ DE ECRAN 5 AICI - DOVADA FIX BRUTE FORCE ]
+-> CUM SĂ FACI POZA: În Postman, Burp sau chiar direct din browser, încearcă să te loghezi cu parolă greșită de 4 ori consecutiv pe un cont din varianta securizată (/V2/Login). Fă o captură de ecran la a 4-a încercare, arătând clar răspunsul serverului: "Contul este blocat din cauza a prea multor incercari esuate. Contactati administratorul."
+
+
+=============================================================================
+DOVEZI SUPLIMENTARE OBLIGATORII (TERMINAL)
+=============================================================================
+- Dovada rulării serverului:
+[ CAPTURĂ DE ECRAN 6 AICI ]
+-> CUM SĂ FACI POZA: În terminalul în care lucrezi, oprește serverul și pornește-l din nou cu comanda "dotnet run". Fă o captură de ecran în care să se vadă mesajul (banner-ul) adăugat în fișierul Program.cs:
+==========================================
+Proiect Securitate Web - Realizat de: RARES
+==========================================

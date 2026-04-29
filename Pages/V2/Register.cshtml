@@ -1,0 +1,9 @@
+@page
+@model ProiectWeb.Pages.V2.RegisterModel
+<h2>Inregistrare V2 (Securizat)</h2>
+<div asp-validation-summary="All" class="text-danger"></div>
+<form method="post">
+    Email: <input type="email" asp-for="Email" required /><br/>
+    Parola (min 8): <input type="password" asp-for="Password" required /><br/>
+    <button type="submit">Inregistrare</button>
+</form>
